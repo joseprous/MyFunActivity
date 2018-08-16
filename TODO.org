@@ -1,0 +1,55 @@
+* client-server
+** get inbox
+- [ ] return messages
+
+** post outbox
+- [X] parse message
+- [X] return 201 Created HTTP code
+- [X] new id in location
+  HTTP/1.1 201 Created
+  Location: https://dustycloud.org/likes/345
+- [ ] remove bto and/or bcc properties
+- [ ] add to outbox collection
+- [ ] return 405 Method Not Allowed if not supported
+- [-] implement activities
+  - [-] Create Activity
+    - [-] wrap in create activity
+      - [X] find type
+      - [X] check if is a subtype of activity
+      - [X] attach object
+      - [ ] copy any to, bto, cc, bcc, and audience properties
+    - [X] set activity id
+    - [ ] create object
+  - [ ] Update Activity
+  - [ ] Delete Activity
+  - [ ] Follow Activity
+  - [ ] Add Activity
+  - [ ] Remove Activity
+  - [ ] Like Activity
+  - [ ] Block Activity
+  - [ ] Undo Activity
+
+* server-server
+** delivery
+- [ ] find inboxes
+- [ ] post to inboxes
+- [ ] retry
+
+** post inbox
+- [ ] parse message
+- [ ] save in db
+- [ ] implement activities
+  - [ ] Create Activity
+  - [ ] Update Activity
+  - [ ] Delete Activity
+  - [ ] Follow Activity
+  - [ ] Accept Activity
+  - [ ] Reject Activity
+  - [ ] Add Activity
+  - [ ] Remove Activity
+  - [ ] Like Activity
+  - [ ] Announce Activity (sharing)
+  - [ ] Undo Activity
+
+** get outbox
+- [ ] return messages

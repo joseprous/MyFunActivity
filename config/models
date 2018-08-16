@@ -1,0 +1,15 @@
+Inbox
+    message ByteString
+    deriving Show
+Outbox
+    message ByteString
+    deriving Show
+Activities
+    message ByteString
+    deriving Show
+Notes
+    message ByteString
+    deriving Show
+GlobalConfig
+    currentId Int
+    deriving Show

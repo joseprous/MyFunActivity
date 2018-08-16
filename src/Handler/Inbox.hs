@@ -7,30 +7,20 @@
 module Handler.Inbox where
 
 import Import
+import Handler.Common
+import qualified Data.Aeson as Aeson
 
 getInboxR :: Handler TypedContent
 getInboxR = selectRep $ do
     provideRep $ return [shamlet|
 <p>Get Inbox
 |]
-    provideRep $ return $ object
-        [ "name" .= name
-        , "age" .= age
-        ]
-  where
-    name = "Michael" :: Text
-    age = 28 :: Int
 
-postInboxR :: Handler TypedContent
-postInboxR = selectRep $ do
-    provideRep $ return
-        [shamlet|
-            Post Inbox
-        |]
-    provideRep $ return $ object
-        [ "name" .= name
-        , "age" .= age
-        ]
-  where
-    name = "Michael" :: Text
-    age = 28 :: Int
+toInbox :: AS -> Inbox
+toInbox as = Inbox {inboxMessage = toText $ Aeson.toJSON as}
+
+postInboxR :: Handler ()
+postInboxR = do
+  msg@(AS val) <- requireJsonBody :: Handler AS
+  _ <- (runDB . insert . toInbox) msg
+  sendResponseStatus status201 ("CREATED" :: Text)

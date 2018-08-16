@@ -10,8 +10,12 @@
 
 /comments CommentR POST
 
+-- ******************************************************************
+
 /actor ActorR GET
 /actor/inbox InboxR GET POST
 /actor/outbox OutboxR GET POST
+/actor/activities/#Int64 ActivitiesR
+/actor/notes/#Int64 NotesR
 
 /.well-known/webfinger WebfingerR GET

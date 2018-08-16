@@ -7,9 +7,15 @@
 module Handler.Webfinger where
 
 import Import
+import Handler.Common
 
 getWebfingerR :: Handler Value
-getWebfingerR = return $ object
+getWebfingerR = do
+  let myUser = appMyUser compileTimeAppSettings
+  home <- routeToText HomeR
+  let subject = myUser ++ "@" ++ home
+  actorUrl <- routeToText ActorR
+  return $ object
         [ "subject" .= subject
         , "links" .= ([object
                        [ "rel" .= ("self" :: Text)
@@ -18,8 +24,3 @@ getWebfingerR = return $ object
                        ]
                       ] :: [Value])
         ]
-  where
-    subject = myUser ++ "@" ++ myHost
-    actorUrl = "https://" ++ myHost ++"/actor"
-    myUser = appMyUser compileTimeAppSettings
-    myHost = appMyHost compileTimeAppSettings

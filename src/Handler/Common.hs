@@ -8,6 +8,9 @@ module Handler.Common where
 
 import Data.FileEmbed (embedFile)
 import Import
+import qualified Data.Aeson as Aeson
+import qualified Data.ByteString               as B
+import qualified Data.ByteString.Lazy          as BL
 
 -- These handlers embed files in the executable at compile time to avoid a
 -- runtime dependency, and for efficiency.
@@ -50,3 +53,19 @@ toActivityJson v = ActivityJson v
 
 toLdJson :: Value -> LdJson
 toLdJson v = LdJson v
+
+data AS = AS Aeson.Value deriving (Show)
+
+instance ToJSON AS where
+  toJSON (AS v) = v
+
+instance FromJSON AS where
+  parseJSON v = return $ AS v
+
+toText :: Value -> B.ByteString
+toText v = B.concat $ BL.toChunks $ Aeson.encode v
+
+routeToText :: MonadHandler m => Route (HandlerSite m) -> m Text
+routeToText url = do
+  r <- getUrlRender
+  return $ r url
