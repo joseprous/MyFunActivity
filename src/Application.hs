@@ -41,6 +41,11 @@ import Handler.Common
 import Handler.Home
 import Handler.Comment
 
+import Handler.Inbox
+import Handler.Outbox
+import Handler.Webfinger
+import Handler.Actor
+
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
 -- comments there for more details.

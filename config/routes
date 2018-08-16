@@ -9,3 +9,9 @@
 / HomeR GET POST
 
 /comments CommentR POST
+
+/actor ActorR GET
+/actor/inbox InboxR GET POST
+/actor/outbox OutboxR GET POST
+
+/.well-known/webfinger WebfingerR GET

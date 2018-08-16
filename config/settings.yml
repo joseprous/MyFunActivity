@@ -27,3 +27,7 @@ ip-from-header: "_env:YESOD_IP_FROM_HEADER:false"
 
 copyright: Insert copyright statement here
 #analytics: UA-YOURCODE
+
+myUser: "jose"
+myHost: "prous.tk"
+publicKey: "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwDnpeuNeC7EvycDffO4R\nc6CcLWLQNXiAljNv/Nf32YET7j5qG2dlxBKSTrj+/HpOBwLnl2KniITVuaIqMezs\nBKgu/VYtIm0yQt2Gz7fGTX3OtqwZswe030obsfvXWkZJTODRBbe7NijuEI1dq2Mk\nPyd8DS2iFUi2kT8QMlmNekX0jT64vRKt26/o/Kn9QGBIEXz1Yobyms/13JO0vTke\nhs6ewD7VrfBvP7ysWwOOqqVKmXQ3azZQn7ToW/RXjJ7GXrBmp5qM8ts+DIF3P5k8\nS/gCd87jKlLMrqQ4dIu18+Tv39nIn1mJSo47vpgFRA57xewC4/FwfPpDdchDWsrY\nJQIDAQAB\n-----END PUBLIC KEY-----\n"
