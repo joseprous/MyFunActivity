@@ -3,31 +3,32 @@
 - [ ] return messages
 
 ** post outbox
-- [X] parse message
-- [X] return 201 Created HTTP code
-- [X] new id in location
-  HTTP/1.1 201 Created
-  Location: https://dustycloud.org/likes/345
-- [ ] remove bto and/or bcc properties
-- [ ] add to outbox collection
-- [ ] return 405 Method Not Allowed if not supported
-- [-] implement activities
-  - [-] Create Activity
-    - [-] wrap in create activity
-      - [X] find type
-      - [X] check if is a subtype of activity
-      - [X] attach object
-      - [ ] copy any to, bto, cc, bcc, and audience properties
-    - [X] set activity id
-    - [ ] create object
-  - [ ] Update Activity
-  - [ ] Delete Activity
-  - [ ] Follow Activity
-  - [ ] Add Activity
-  - [ ] Remove Activity
-  - [ ] Like Activity
-  - [ ] Block Activity
-  - [ ] Undo Activity
+*** DONE parse message
+*** DONE return 201 Created HTTP code
+*** DONE new id in location
+HTTP/1.1 201 Created
+Location: https://dustycloud.org/likes/345
+*** TODO remove bto and/or bcc properties
+*** TODO add to outbox collection
+*** TODO return 405 Method Not Allowed if not supported
+*** TODO implement activities
+**** TODO Create Activity
+***** TODO wrap in create activity
+****** DONE find type
+****** DONE check if is a subtype of activity
+****** DONE attach object
+****** TODO copy any to, bto, cc, bcc, and audience properties         :must:
+***** DONE set activity id
+***** DONE create object
+***** TODO copy actor to object attributedTo                         :should:
+**** TODO Update Activity
+**** TODO Delete Activity
+**** TODO Follow Activity
+**** TODO Add Activity
+**** TODO Remove Activity
+**** TODO Like Activity
+**** TODO Block Activity
+**** TODO Undo Activity
 
 * server-server
 ** delivery

@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RecordWildCards #-}
 module Handler.Actor where
 
 import Import
@@ -11,10 +12,11 @@ import Handler.Common
 
 getActorJson :: Handler Value
 getActorJson = do
+  App {..} <- getYesod
   actorUrl <- routeToText ActorR
   inboxUrl <- routeToText InboxR
-  let user = appMyUser compileTimeAppSettings
-  let key = appPublicKey compileTimeAppSettings
+  let user = appMyUser appSettings
+  let key = appPublicKey appSettings
   return $ object
     [ "@context" .= ([ "https://www.w3.org/ns/activitystreams"
                      , "https://w3id.org/security/v1"

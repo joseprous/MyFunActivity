@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RecordWildCards #-}
 module Handler.Webfinger where
 
 import Import
@@ -11,7 +12,8 @@ import Handler.Common
 
 getWebfingerR :: Handler Value
 getWebfingerR = do
-  let myUser = appMyUser compileTimeAppSettings
+  App {..} <- getYesod
+  let myUser = appMyUser appSettings
   home <- routeToText HomeR
   let subject = myUser ++ "@" ++ home
   actorUrl <- routeToText ActorR
