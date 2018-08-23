@@ -32,9 +32,10 @@ Location: https://dustycloud.org/likes/345
 
 * server-server
 ** delivery
-- [ ] find inboxes
-- [ ] post to inboxes
-- [ ] retry
+*** TODO find inboxes
+*** TODO post to inboxes
+*** TODO de duplicate the final recipient list
+*** TODO retry
 
 ** post inbox
 - [ ] parse message

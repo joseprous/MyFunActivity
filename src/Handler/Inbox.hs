@@ -8,7 +8,6 @@ module Handler.Inbox where
 
 import Import
 import Handler.Common
-import qualified Data.Aeson as Aeson
 
 getInboxR :: Handler TypedContent
 getInboxR = selectRep $ do
@@ -17,10 +16,10 @@ getInboxR = selectRep $ do
 |]
 
 toInbox :: AS -> Inbox
-toInbox as = Inbox {inboxMessage = toText $ Aeson.toJSON as}
+toInbox (AS as) = Inbox {inboxMessage = toText as}
 
 postInboxR :: Handler ()
 postInboxR = do
-  msg@(AS val) <- requireJsonBody :: Handler AS
-  _ <- (runDB . insert . toInbox) msg
+  _ <- requireJsonBody >>= runDB . insert . toInbox
   sendResponseStatus status201 ("CREATED" :: Text)
+

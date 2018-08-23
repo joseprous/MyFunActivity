@@ -47,6 +47,8 @@ dependencies:
 - foreign-store
 - lens
 - lens-aeson
+- connection
+- transformers
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

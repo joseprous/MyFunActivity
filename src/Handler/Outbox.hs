@@ -9,38 +9,32 @@ module Handler.Outbox where
 import Import
 import Handler.Common
 import qualified Data.Aeson as Aeson
-import Data.Text as T
+import qualified Data.Text as T
 
 import Control.Lens hiding ((.=))
 import Data.Aeson.Lens as L
 import Database.Persist.Sql (fromSqlKey)
+
+import Network.Connection (TLSSettings (..))
+import qualified Network.HTTP.Conduit as C
+
+import qualified Data.ByteString.Lazy as L
+import Data.Maybe
 
 getOutboxR :: Handler TypedContent
 getOutboxR = selectRep $ do
   provideRep $ return [shamlet|
 <p>Get Outbox
 |]
-  provideRep $ return $ toActivityJson jsonld
-  provideRep $ return $ toLdJson jsonld
-
-jsonld :: Value
-jsonld = object
-         [ "name" .= name
-         , "age" .= age
-         ]
-         where
-           name = "Get" :: Text
-           age = 28 :: Int
 
 toOutbox :: AS -> Outbox
-toOutbox as = Outbox {outboxMessage = toText $ Aeson.toJSON as}
+toOutbox (AS as) = Outbox {outboxMessage = toText as}
 
 toActivities :: AS -> Activities
-toActivities as = Activities {activitiesMessage = toText $ Aeson.toJSON as}
+toActivities (AS as) = Activities {activitiesMessage = toText as}
 
 toNotes :: AS -> Notes
-toNotes as = Notes {notesMessage = toText $ Aeson.toJSON as}
-
+toNotes (AS as) = Notes {notesMessage = toText as}
 
 getNextId :: [Int] -> Int
 getNextId [] = 1
@@ -53,55 +47,75 @@ isActivity _ = False
 
 toCreate :: AS -> Handler AS
 toCreate (AS val) = do
-  actor <- routeToText ActorR
+  render <- getUrlRender
   return $ AS $
     object [ "@context" .= ("https://www.w3.org/ns/activitystreams" :: Text)
            , "type" .= ("Create":: Text)
-           , "actor" .= actor
+           , "actor" .= render ActorR
            , "object" .= val ]
 
+addId :: Value -> Text -> Value
+addId v newId = v & _Object . at "id" ?~ String newId
+
 createNote :: AS -> Handler (Maybe AS)
-createNote msg = do
-  noteId <- runDB $ insert $ toNotes msg
-  let idNumber = fromSqlKey noteId
-  idProp <- routeToText $ NotesR idNumber
-  let newMsg = AS $ (Aeson.toJSON msg) & _Object . at "id"  ?~ String idProp
-  runDB $ Import.replace noteId $ toNotes newMsg
-  return (Just newMsg)
+createNote as@(AS v) = do
+  noteId <- runDB $ insert $ toNotes as
+  render <- getUrlRender
+  let newId = render $ NotesR $ fromSqlKey noteId
+  let newMsg = addId v newId
+  runDB $ Import.replace noteId $ toNotes $ AS newMsg
+  return (Just $ AS newMsg)
 
 createObject :: AS -> Handler (Maybe AS)
-createObject msg = do
-  let mObj = (Aeson.toJSON msg) ^? key "object" . L.nonNull
+createObject (AS msg) = do
+  let mObj = msg ^? key "object"
   case mObj of
     (Just obj) -> do
-      liftIO $ print obj
-      let objType = obj ^? key "type" . L.nonNull
+      let objType = obj ^? key "type"
       case objType of
         (Just (String s)) | s == "Note" -> createNote $ AS obj
                           | otherwise -> return Nothing
         _ -> return Nothing
     _ -> return Nothing
 
-createActivity :: AS -> AS -> Handler ()
-createActivity act@(AS vAct) obj@(AS vObj) = do
+processActivity :: AS -> AS -> Text -> AS
+processActivity (AS vAct) (AS vObj) newId =
+  AS $ addId vAct newId
+  & _Object . at "object" ?~ vObj
+  & _Object . at "to" .~ (vObj ^? key "to")
+
+createActivity :: AS -> AS -> Handler (AS,Route App)
+createActivity act obj = do
   activityId <- runDB $ insert $ toActivities act
-  liftIO $ print $ activityId
-  let idNumber = fromSqlKey activityId
-  liftIO $ print $ idNumber
-  idProp <- routeToText $ ActivitiesR idNumber
-  let actWithId = vAct & _Object . at "id"  ?~ String idProp
-  liftIO $ print actWithId
-  let actWithObj = actWithId & _Object . at "object"  ?~ vObj
-  liftIO $ print actWithObj
-  runDB $ Import.replace activityId $ toActivities $ AS actWithObj
-  sendResponseCreated $ ActivitiesR idNumber
+  render <- getUrlRender
+  let idRoute = ActivitiesR $ fromSqlKey activityId
+  let newId = render idRoute
+  let newAct = processActivity act obj newId
+  runDB $ Import.replace activityId $ toActivities newAct
+  return (newAct,idRoute)
+
+sendOne :: Text -> IO ()
+sendOne url = do
+  response <- C.simpleHttp $ T.unpack url
+  L.putStr response
+
+sendActivity :: AS -> Handler ()
+sendActivity (AS vAct) = do
+  let v = vAct ^? key "to"
+  case v of
+    (Just (Array l)) -> do
+      let urls = map (\(String s)->s) l
+      liftIO $ mapM_ sendOne urls
+    _ -> return ()
 
 handleActivity :: AS -> Handler ()
 handleActivity msg = do
-  liftIO $ print $ msg
   mObj <- createObject msg
   case mObj of
-    (Just obj) -> createActivity msg obj
+    (Just obj) -> do
+      (act,route) <- createActivity msg obj
+      sendActivity act
+      sendResponseCreated route
     Nothing -> sendError
 
 sendError :: Handler ()
@@ -109,17 +123,18 @@ sendError = sendResponseStatus status405 ("Method Not Allowed" :: Text)
 
 postOutboxR :: Handler ()
 postOutboxR = do
-  msg <- requireJsonBody :: Handler AS
-  let objType = (Aeson.toJSON msg) ^? key "type" . L.nonNull
-  liftIO $ print $ objType
+  as@(AS msg) <- requireJsonBody :: Handler AS
+  let objType = msg ^? key "type"
   case objType of
-    (Just (String s)) -> if isActivity s then handleActivity msg else do
-      act <- toCreate msg
-      handleActivity act
+    (Just (String s)) ->
+      if isActivity s then
+        handleActivity as
+      else
+        toCreate as >>= handleActivity
     _ -> sendError
 
 handleActivitiesR :: Int64 -> Handler Text
-handleActivitiesR n = return $ T.pack $ show n
+handleActivitiesR n = return $ tshow n
 
 handleNotesR :: Int64 -> Handler Text
-handleNotesR n = return $ T.pack $ show n
+handleNotesR n = return $ tshow n
