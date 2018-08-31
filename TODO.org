@@ -1,6 +1,6 @@
 * client-server
 ** get inbox
-- [ ] return messages
+*** TODO return messages
 
 ** post outbox
 *** DONE parse message
@@ -30,28 +30,29 @@ Location: https://dustycloud.org/likes/345
 **** TODO Block Activity
 **** TODO Undo Activity
 
+
 * server-server
 ** delivery
-*** TODO find inboxes
-*** TODO post to inboxes
-*** TODO de duplicate the final recipient list
+*** DONE find inboxes
+*** DONE post to inboxes
+*** DONE de duplicate the final recipient list
 *** TODO retry
 
 ** post inbox
-- [ ] parse message
-- [ ] save in db
-- [ ] implement activities
-  - [ ] Create Activity
-  - [ ] Update Activity
-  - [ ] Delete Activity
-  - [ ] Follow Activity
-  - [ ] Accept Activity
-  - [ ] Reject Activity
-  - [ ] Add Activity
-  - [ ] Remove Activity
-  - [ ] Like Activity
-  - [ ] Announce Activity (sharing)
-  - [ ] Undo Activity
+*** TODO parse message
+*** TODO save in db
+*** TODO implement activities
+**** TODO Create Activity
+**** TODO Update Activity
+**** TODO Delete Activity
+**** TODO Follow Activity
+**** TODO Accept Activity
+**** TODO Reject Activity
+**** TODO Add Activity
+**** TODO Remove Activity
+**** TODO Like Activity
+**** TODO Announce Activity (sharing)
+**** TODO Undo Activity
 
 ** get outbox
-- [ ] return messages
+*** TODO return messages

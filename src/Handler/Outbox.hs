@@ -10,16 +10,19 @@ import Import
 import Handler.Common
 import qualified Data.Aeson as Aeson
 import qualified Data.Text as T
+import qualified Data.Text.Lazy.Encoding as TE
+import qualified Data.Set as S
 
 import Control.Lens hiding ((.=))
 import Data.Aeson.Lens as L
 import Database.Persist.Sql (fromSqlKey)
 
 import Network.Connection (TLSSettings (..))
-import qualified Network.HTTP.Conduit as C
-
+-- import qualified Network.HTTP.Conduit as C
+-- import           Network.HTTP.Simple
+import qualified Network.HTTP.Client as HC
 import qualified Data.ByteString.Lazy as L
-import Data.Maybe
+import qualified Data.Maybe as M
 
 getOutboxR :: Handler TypedContent
 getOutboxR = selectRep $ do
@@ -94,19 +97,56 @@ createActivity act obj = do
   runDB $ Import.replace activityId $ toActivities newAct
   return (newAct,idRoute)
 
-sendOne :: Text -> IO ()
-sendOne url = do
-  response <- C.simpleHttp $ T.unpack url
-  L.putStr response
+getActorJSON :: Text -> IO L.ByteString
+getActorJSON url = do
+  reqUrl <- HC.parseRequest $ T.unpack url
+  manager <- HC.newManager HC.defaultManagerSettings
+  let req = reqUrl {requestHeaders = [("Accept","application/ld+json")]}
+  response <- HC.httpLbs req manager
+  L.putStr $ HC.responseBody response
+  return $ HC.responseBody response
 
-sendActivity :: AS -> Handler ()
-sendActivity (AS vAct) = do
-  let v = vAct ^? key "to"
+getActorInbox :: Text -> IO (Maybe Text)
+getActorInbox url = do
+  actor <- getActorJSON url
+  let inboxUrl = actor ^? key "inbox"
+  case inboxUrl of
+    (Just (String s)) -> return $ Just s
+    _ -> return Nothing
+
+getUrls :: Aeson.Array -> [Text]
+getUrls a = toList $ map (\(String s)->s) a
+
+getAudienceKey :: AS -> Text -> IO [Text]
+getAudienceKey (AS vAct) keyName = do
+  let v = vAct ^? key keyName
   case v of
     (Just (Array l)) -> do
-      let urls = map (\(String s)->s) l
-      liftIO $ mapM_ sendOne urls
-    _ -> return ()
+      let urls = getUrls l
+      a <- mapM getActorInbox urls
+      return $ catMaybes a
+    _ -> return []
+
+getAudience :: AS -> IO [Text]
+getAudience act = do
+  a1 <- getAudienceKey act "to"
+  a2 <- getAudienceKey act "cc"
+  a3 <- getAudienceKey act "bto"
+  a4 <- getAudienceKey act "bcc"
+  let audience = (S.toList . S.fromList) $ a1 ++ a2 ++ a3 ++ a4
+  return audience
+
+postToInbox :: AS -> Text -> IO ()
+postToInbox (AS vAct) url = do
+  reqUrl <- HC.parseRequest $ T.unpack url
+  manager <- HC.newManager HC.defaultManagerSettings
+  let req = reqUrl {
+        method = "POST",
+        requestHeaders = [("Content-Type","application/json")],
+        requestBody = RequestBodyLBS $ Aeson.encode vAct
+        }
+  _ <- HC.httpLbs req manager
+  return ()
 
 handleActivity :: AS -> Handler ()
 handleActivity msg = do
@@ -114,7 +154,9 @@ handleActivity msg = do
   case mObj of
     (Just obj) -> do
       (act,route) <- createActivity msg obj
-      sendActivity act
+      audience <- liftIO $ getAudience act
+      liftIO $ print $ audience
+      liftIO $ mapM_ (postToInbox act) audience
       sendResponseCreated route
     Nothing -> sendError
 
