@@ -41,6 +41,6 @@ script:
 
 deploy:
   provider: releases
-  github-token: $GITHUB_TOKEN
+  api-key: $GITHUB_TOKEN
   file: ".stack-work/install/x86_64-linux/lts-12.0/8.4.3/bin/MyFunActivity"
   skip_cleanup: true
