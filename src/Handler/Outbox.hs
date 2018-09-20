@@ -18,11 +18,15 @@ import Data.Aeson.Lens as L
 import Database.Persist.Sql (fromSqlKey)
 
 import Network.Connection (TLSSettings (..))
--- import qualified Network.HTTP.Conduit as C
--- import           Network.HTTP.Simple
 import qualified Network.HTTP.Client as HC
+import qualified Network.HTTP.Client.TLS as TLS
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Maybe as M
+
+import Handler.Crypto
+import qualified Crypto.PubKey.RSA as RSA
+import Network.HTTP.Date
+import Data.Text.Encoding as E
 
 getOutboxR :: Handler TypedContent
 getOutboxR = selectRep $ do
@@ -86,6 +90,10 @@ processActivity (AS vAct) (AS vObj) newId =
   AS $ addId vAct newId
   & _Object . at "object" ?~ vObj
   & _Object . at "to" .~ (vObj ^? key "to")
+  & _Object . at "bto" .~ (vObj ^? key "bto")
+  & _Object . at "cc" .~ (vObj ^? key "cc")
+  & _Object . at "bcc" .~ (vObj ^? key "bcc")
+  & _Object . at "audience" .~ (vObj ^? key "audience")
 
 createActivity :: AS -> AS -> Handler (AS,Route App)
 createActivity act obj = do
@@ -100,7 +108,7 @@ createActivity act obj = do
 getActorJSON :: Text -> IO L.ByteString
 getActorJSON url = do
   reqUrl <- HC.parseRequest $ T.unpack url
-  manager <- HC.newManager HC.defaultManagerSettings
+  manager <- TLS.newTlsManager
   let req = reqUrl {requestHeaders = [("Accept","application/ld+json")]}
   response <- HC.httpLbs req manager
   L.putStr $ HC.responseBody response
@@ -136,27 +144,47 @@ getAudience act = do
   let audience = (S.toList . S.fromList) $ a1 ++ a2 ++ a3 ++ a4
   return audience
 
-postToInbox :: AS -> Text -> IO ()
-postToInbox (AS vAct) url = do
-  reqUrl <- HC.parseRequest $ T.unpack url
-  manager <- HC.newManager HC.defaultManagerSettings
-  let req = reqUrl {
+postToInbox :: RSA.PrivateKey -> (Route App -> Text) -> AS -> Text -> IO ()
+postToInbox pkey render (AS vAct) url = do
+  initialRequest <- HC.parseRequest $ T.unpack url
+  manager <- TLS.newTlsManager
+
+  let actorUrl = E.encodeUtf8 $ render ActorR
+  let targetHost = HC.host initialRequest
+
+  now <- getCurrentTime
+  let hnow = utcToHTTPDate now
+  let date = formatHTTPDate hnow
+  let signed_string = "(request-target): post /inbox\nhost: " ++ targetHost ++ "\ndate: " ++ date
+  sig <- sign pkey signed_string
+  let header = "keyId=\"" ++ actorUrl ++ "\",headers=\"(request-target) host date\",signature=\"" ++ sig ++ "\""
+
+  let request = initialRequest {
         method = "POST",
-        requestHeaders = [("Content-Type","application/json")],
+        requestHeaders = [("Content-Type", "application/ld+json")
+                         ,("Host", targetHost)
+                         ,("Date", date)
+                         ,("Signature", header)],
         requestBody = RequestBodyLBS $ Aeson.encode vAct
         }
-  _ <- HC.httpLbs req manager
+  response <- HC.httpLbs request manager
+  L.putStr $ HC.responseBody response
   return ()
 
 handleActivity :: AS -> Handler ()
 handleActivity msg = do
+  app <- getYesod
+  render <- getUrlRender
+  let settings = appSettings app
+  let tpkey = appPrivateKey settings
+  let pkey = keyFromText tpkey
   mObj <- createObject msg
   case mObj of
     (Just obj) -> do
       (act,route) <- createActivity msg obj
       audience <- liftIO $ getAudience act
       liftIO $ print $ audience
-      liftIO $ mapM_ (postToInbox act) audience
+      liftIO $ mapM_ (postToInbox pkey render act) audience
       sendResponseCreated route
     Nothing -> sendError
 

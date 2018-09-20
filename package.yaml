@@ -51,6 +51,12 @@ dependencies:
 - connection
 - transformers
 - resourcet
+- cryptonite
+- x509
+- pem
+- x509-store
+- base64-bytestring
+- http-date
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

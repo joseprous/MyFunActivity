@@ -10,14 +10,14 @@ HTTP/1.1 201 Created
 Location: https://dustycloud.org/likes/345
 *** TODO remove bto and/or bcc properties
 *** TODO add to outbox collection
-*** TODO return 405 Method Not Allowed if not supported
+*** DONE return 405 Method Not Allowed if not supported
 *** TODO implement activities
 **** TODO Create Activity
 ***** TODO wrap in create activity
 ****** DONE find type
 ****** DONE check if is a subtype of activity
 ****** DONE attach object
-****** TODO copy any to, bto, cc, bcc, and audience properties         :must:
+****** DONE copy any to, bto, cc, bcc, and audience properties         :must:
 ***** DONE set activity id
 ***** DONE create object
 ***** TODO copy actor to object attributedTo                         :should:

@@ -62,6 +62,7 @@ data AppSettings = AppSettings
     , appAuthDummyLogin         :: Bool
     , appMyUser :: Text
     , appPublicKey :: Text
+    , appPrivateKey :: Text
     }
 
 instance FromJSON AppSettings where
@@ -93,6 +94,7 @@ instance FromJSON AppSettings where
         appAuthDummyLogin         <- o .:? "auth-dummy-login"      .!= dev
         appMyUser                 <- o .: "myUser"
         appPublicKey              <- o .: "publicKey"
+        appPrivateKey             <- o .: "privateKey"
 
         return AppSettings {..}
 
