@@ -10,6 +10,3 @@ Activities
 Notes
     message ByteString
     deriving Show
-GlobalConfig
-    currentId Int
-    deriving Show
