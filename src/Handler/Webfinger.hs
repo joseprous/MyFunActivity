@@ -14,7 +14,7 @@ getWebfingerR :: Handler Value
 getWebfingerR = do
   App {..} <- getYesod
   let myUser = appMyUser appSettings
-  home <- routeToText HomeR
+  home <- routeToText ActorR
   let subject = myUser ++ "@" ++ home
   actorUrl <- routeToText ActorR
   return $ object

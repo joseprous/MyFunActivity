@@ -6,16 +6,11 @@
 /favicon.ico FaviconR GET
 /robots.txt RobotsR GET
 
-/ HomeR GET POST
+/ ActorR GET
 
-/comments CommentR POST
-
--- ******************************************************************
-
-/actor ActorR GET
-/actor/inbox InboxR GET POST
-/actor/outbox OutboxR GET POST
-/actor/activities/#Int64 ActivitiesR
-/actor/notes/#Int64 NotesR
+/inbox InboxR GET POST
+/outbox OutboxR GET POST
+/activities/#Int64 ActivitiesR
+/notes/#Int64 NotesR
 
 /.well-known/webfinger WebfingerR GET
