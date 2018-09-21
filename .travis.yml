@@ -39,6 +39,14 @@ script:
 # Build the package, its tests, and its docs and run the tests
 - stack --no-terminal test
 
+env:
+  global:
+    - GIT_NAME: Travis CI
+    - GIT_EMAIL: builds@travis-ci.org
+
+before_deploy:
+  - ./deploy.sh
+
 deploy:
   - provider: releases
     api_key: $GITHUB_TOKEN
