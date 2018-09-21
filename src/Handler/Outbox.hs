@@ -10,7 +10,8 @@ import Import
 import Handler.Common
 import qualified Data.Aeson as Aeson
 import qualified Data.Text as T
-import qualified Data.Text.Lazy.Encoding as TE
+import qualified Data.Text.Lazy as LT
+import qualified Data.Text.Lazy.Encoding as LE
 import qualified Data.Set as S
 
 import Control.Lens hiding ((.=))
@@ -144,7 +145,7 @@ getAudience act = do
   let audience = (S.toList . S.fromList) $ a1 ++ a2 ++ a3 ++ a4
   return audience
 
-postToInbox :: RSA.PrivateKey -> (Route App -> Text) -> AS -> Text -> IO ()
+postToInbox :: RSA.PrivateKey -> (Route App -> Text) -> AS -> Text -> Handler ()
 postToInbox pkey render (AS vAct) url = do
   initialRequest <- HC.parseRequest $ T.unpack url
   manager <- TLS.newTlsManager
@@ -152,11 +153,11 @@ postToInbox pkey render (AS vAct) url = do
   let actorUrl = E.encodeUtf8 $ render ActorR
   let targetHost = HC.host initialRequest
 
-  now <- getCurrentTime
+  now <- liftIO getCurrentTime
   let hnow = utcToHTTPDate now
   let date = formatHTTPDate hnow
   let signed_string = "(request-target): post /inbox\nhost: " ++ targetHost ++ "\ndate: " ++ date
-  sig <- sign pkey signed_string
+  sig <- liftIO $ sign pkey signed_string
   let header = "keyId=\"" ++ actorUrl ++ "\",headers=\"(request-target) host date\",signature=\"" ++ sig ++ "\""
 
   let request = initialRequest {
@@ -167,8 +168,8 @@ postToInbox pkey render (AS vAct) url = do
                          ,("Signature", header)],
         requestBody = RequestBodyLBS $ Aeson.encode vAct
         }
-  response <- HC.httpLbs request manager
-  L.putStr $ HC.responseBody response
+  response <- liftIO $ HC.httpLbs request manager
+  $logDebug $ LT.toStrict $ LE.decodeUtf8 $ HC.responseBody response
   return ()
 
 handleActivity :: AS -> Handler ()
@@ -183,8 +184,8 @@ handleActivity msg = do
     (Just obj) -> do
       (act,route) <- createActivity msg obj
       audience <- liftIO $ getAudience act
-      liftIO $ print $ audience
-      liftIO $ mapM_ (postToInbox pkey render act) audience
+      $logDebug $ tshow audience
+      mapM_ (postToInbox pkey render act) audience
       sendResponseCreated route
     Nothing -> sendError
 
