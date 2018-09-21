@@ -170,7 +170,7 @@ postToInbox pkey render (AS vAct) url = do
         }
   response <- liftIO $ HC.httpLbs request manager
   let textRespose = LT.toStrict $ LE.decodeUtf8 $ HC.responseBody response
-  _ <- runDB $ insert $ Logs { logsMessage = textRespose }
+  _ <- runDB $ insert $ Logs { logsMessage = "request: " ++ tshow request ++ " response: " ++ textRespose }
   $logDebug textRespose
   return ()
 
