@@ -10,3 +10,6 @@ Activities
 Notes
     message ByteString
     deriving Show
+Logs
+    message Text
+    deriving Show

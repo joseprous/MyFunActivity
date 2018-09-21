@@ -169,7 +169,9 @@ postToInbox pkey render (AS vAct) url = do
         requestBody = RequestBodyLBS $ Aeson.encode vAct
         }
   response <- liftIO $ HC.httpLbs request manager
-  $logDebug $ LT.toStrict $ LE.decodeUtf8 $ HC.responseBody response
+  let textRespose = LT.toStrict $ LE.decodeUtf8 $ HC.responseBody response
+  _ <- runDB $ insert $ Logs { logsMessage = textRespose }
+  $logDebug textRespose
   return ()
 
 handleActivity :: AS -> Handler ()
