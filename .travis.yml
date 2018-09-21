@@ -58,6 +58,5 @@ deploy:
     skip_cleanup: true
   - provider: heroku
     api_key: $HEROKU_API_KEY
-    app:
-      deploy: my-fun-activity
+    app: my-fun-activity
 
