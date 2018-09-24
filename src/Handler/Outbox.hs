@@ -174,7 +174,8 @@ postToInbox pkey render (AS vAct) url = do
   response <- liftIO $ HC.httpLbs request manager
   let textRespose = LT.toStrict $ LE.decodeUtf8 $ HC.responseBody response
   _ <- runDB $ insert $ Logs { logsMessage = "request: " ++ tshow request ++ " response: " ++ textRespose }
-  $logDebug textRespose
+  $logDebug $ "request: " ++ tshow request
+  $logDebug $ "response: " ++ textRespose
   return ()
 
 handleActivity :: AS -> Handler ()
@@ -183,13 +184,14 @@ handleActivity msg = do
   render <- getUrlRender
   let settings = appSettings app
   let tpkey = appPrivateKey settings
+  $logDebug $ "pkey: " ++ tpkey
   let pkey = keyFromText tpkey
   mObj <- createObject msg
   case mObj of
     (Just obj) -> do
       (act,route) <- createActivity msg obj
       audience <- liftIO $ getAudience act
-      $logDebug $ tshow audience
+      $logDebug $ "audience: " ++ tshow audience
       mapM_ (postToInbox pkey render act) audience
       sendResponseCreated route
     Nothing -> sendError
