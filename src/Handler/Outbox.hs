@@ -160,6 +160,9 @@ postToInbox pkey render (AS vAct) url = do
   sig <- liftIO $ sign pkey signed_string
   let header = "keyId=\"" ++ actorUrl ++ "\",headers=\"(request-target) host date\",signature=\"" ++ sig ++ "\""
 
+  $logDebug $ "signed_string: " ++ E.decodeUtf8 signed_string
+  $logDebug $ "header:" ++ E.decodeUtf8 header
+
   let request = initialRequest {
         method = "POST",
         requestHeaders = [("Content-Type", "application/ld+json")
