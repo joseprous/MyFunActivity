@@ -16,7 +16,7 @@ getWebfingerR = do
   let myUser = appMyUser appSettings
   let myHost = "my-fun-activity.herokuapp.com"
   -- home <- routeToText ActorR
-  let subject = myUser ++ "@" ++ myHost
+  let subject = "acct:" ++ myUser ++ "@" ++ myHost
   actorUrl <- routeToText ActorR
   return $ object
         [ "subject" .= subject
