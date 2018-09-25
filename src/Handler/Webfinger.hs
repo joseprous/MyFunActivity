@@ -14,8 +14,9 @@ getWebfingerR :: Handler Value
 getWebfingerR = do
   App {..} <- getYesod
   let myUser = appMyUser appSettings
-  home <- routeToText ActorR
-  let subject = myUser ++ "@" ++ home
+  let myHost = "my-fun-activity.herokuapp.com"
+  -- home <- routeToText ActorR
+  let subject = myUser ++ "@" ++ myHost
   actorUrl <- routeToText ActorR
   return $ object
         [ "subject" .= subject
