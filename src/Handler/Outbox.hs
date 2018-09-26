@@ -158,7 +158,7 @@ postToInbox pkey render (AS vAct) url = do
   let date = formatHTTPDate hnow
   let signed_string = "(request-target): post /inbox\nhost: " ++ targetHost ++ "\ndate: " ++ date
   sig <- liftIO $ sign pkey signed_string
-  let header = "keyId=\"" ++ actorUrl ++ "\",headers=\"(request-target) host date\",signature=\"" ++ sig ++ "\""
+  let header = "keyId=\"" ++ actorUrl ++ "#main-key\",headers=\"(request-target) host date\",signature=\"" ++ sig ++ "\""
 
   $logDebug $ "signed_string: " ++ E.decodeUtf8 signed_string
   $logDebug $ "header:" ++ E.decodeUtf8 header
