@@ -156,7 +156,7 @@ postToInbox pkey render (AS vAct) url = do
   now <- liftIO getCurrentTime
   let hnow = utcToHTTPDate now
   let date = formatHTTPDate hnow
-  let signed_string = "(request-target): post /inbox\nhost: my-mastodon-test.scalingo.io \ndate: " ++ date
+  let signed_string = "(request-target): post /inbox\nhost: my-mastodon-test.scalingo.io\ndate: " ++ date
   -- let signed_string = "(request-target): post /inbox\nhost: " ++ targetHost ++ "\ndate: " ++ date
   sig <- liftIO $ sign pkey signed_string
   let header = "keyId=\"" ++ actorUrl ++ "#main-key\",headers=\"(request-target) host date\",signature=\"" ++ sig ++ "\""
