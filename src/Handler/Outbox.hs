@@ -29,6 +29,8 @@ import qualified Crypto.PubKey.RSA as RSA
 import Network.HTTP.Date
 import Data.Text.Encoding as E
 
+import Data.ActivityStreams
+
 getOutboxR :: Handler TypedContent
 getOutboxR = selectRep $ do
   provideRep $ return [shamlet|
@@ -36,13 +38,13 @@ getOutboxR = selectRep $ do
 |]
 
 toOutbox :: AS -> Outbox
-toOutbox (AS as) = Outbox {outboxMessage = toText as}
+toOutbox msg = Outbox {outboxMessage = msg}
 
 toActivities :: AS -> Activities
-toActivities (AS as) = Activities {activitiesMessage = toText as}
+toActivities msg = Activities {activitiesMessage = msg}
 
 toNotes :: AS -> Notes
-toNotes (AS as) = Notes {notesMessage = toText as}
+toNotes msg = Notes {notesMessage = msg}
 
 getNextId :: [Int] -> Int
 getNextId [] = 1
@@ -166,7 +168,7 @@ postToInbox pkey render (AS vAct) url = do
 
   let request = initialRequest {
         method = "POST",
-        requestHeaders = [("Content-Type", "application/ld+json")
+        requestHeaders = [("Content-Type", "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
                          ,("Host", targetHost)
                          ,("Date", date)
                          ,("Signature", header)],

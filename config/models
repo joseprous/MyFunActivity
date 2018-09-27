@@ -1,14 +1,14 @@
 Inbox
-    message ByteString
+    message AS
     deriving Show
 Outbox
-    message ByteString
+    message AS
     deriving Show
 Activities
-    message ByteString
+    message AS
     deriving Show
 Notes
-    message ByteString
+    message AS
     deriving Show
 Logs
     message Text

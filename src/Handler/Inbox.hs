@@ -8,6 +8,7 @@ module Handler.Inbox where
 
 import Import
 import Handler.Common
+import Data.ActivityStreams
 
 getInboxR :: Handler TypedContent
 getInboxR = selectRep $ do
@@ -16,7 +17,7 @@ getInboxR = selectRep $ do
 |]
 
 toInbox :: AS -> Inbox
-toInbox (AS as) = Inbox {inboxMessage = toText as}
+toInbox msg = Inbox {inboxMessage = msg}
 
 postInboxR :: Handler ()
 postInboxR = do

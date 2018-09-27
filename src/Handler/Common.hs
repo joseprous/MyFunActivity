@@ -26,14 +26,6 @@ getRobotsR :: Handler TypedContent
 getRobotsR = return $ TypedContent typePlain
                     $ toContent $(embedFile "config/robots.txt")
 
-data AS = AS Aeson.Value deriving (Show)
-
-instance ToJSON AS where
-  toJSON (AS v) = v
-
-instance FromJSON AS where
-  parseJSON v = return $ AS v
-
 toText :: Value -> B.ByteString
 toText v = B.concat $ BL.toChunks $ Aeson.encode v
 
