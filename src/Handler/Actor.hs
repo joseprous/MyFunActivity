@@ -16,10 +16,11 @@ getActorJson settings render =
       inboxUrl = render InboxR
       user = appMyUser settings
       key = appPublicKey settings
-  in getActorJson' actorUrl inboxUrl user key
+      avatar = appAvatar settings
+  in getActorJson' actorUrl inboxUrl user key avatar
 
-getActorJson' :: Text -> Text -> Text -> Text -> Value
-getActorJson' actorUrl inboxUrl user key =
+getActorJson' :: Text -> Text -> Text -> Text -> Text -> Value
+getActorJson' actorUrl inboxUrl user key avatar =
   object
   [ "@context" .= ([ "https://www.w3.org/ns/activitystreams"
                    , "https://w3id.org/security/v1"
@@ -33,12 +34,7 @@ getActorJson' actorUrl inboxUrl user key =
     , "owner" .= actorUrl
     , "publicKeyPem" .= key
     ]
-  , "links" .= ([object
-                  [ "rel" .= ("self" :: Text)
-                  , "type" .= ("application/activity+json" :: Text)
-                  , "href" .= actorUrl
-                  ]
-                ] :: [Value])
+  , "icon" .= avatar
   ]
 
 getActorR :: Handler TypedContent

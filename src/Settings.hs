@@ -63,6 +63,7 @@ data AppSettings = AppSettings
     , appMyUser :: Text
     , appPublicKey :: Text
     , appPrivateKey :: Text
+    , appAvatar :: Text
     }
 
 instance FromJSON AppSettings where
@@ -95,6 +96,7 @@ instance FromJSON AppSettings where
         appMyUser                 <- o .: "myUser"
         appPublicKey              <- o .: "publicKey"
         appPrivateKey             <- o .: "privateKey"
+        appAvatar                 <- o .: "avatar"
 
         return AppSettings {..}
 
