@@ -197,7 +197,9 @@ handleActivity msg = do
       $logDebug $ "audience: " ++ tshow audience
       mapM_ (postToInbox pkey render act) audience
       sendResponseCreated route
-    Nothing -> sendError
+    Nothing -> do
+      $logDebug $ "handleActivity error mObj: " ++ tshow mObj
+      sendError
 
 sendError :: Handler ()
 sendError = sendResponseStatus status405 ("Method Not Allowed" :: Text)
@@ -212,7 +214,9 @@ postOutboxR = do
         handleActivity as
       else
         toCreate as >>= handleActivity
-    _ -> sendError
+    _ -> do
+      $logDebug $ "postOutboxR error objType: " ++ tshow objType
+      sendError
 
 handleActivitiesR :: Int64 -> Handler Text
 handleActivitiesR n = return $ tshow n
