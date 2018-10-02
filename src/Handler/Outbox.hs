@@ -136,6 +136,9 @@ getAudienceKey (AS vAct) keyName = do
       let urls = getUrls l
       a <- mapM getActorInbox urls
       return $ catMaybes a
+    (Just (String s)) -> do
+      a <- getActorInbox s
+      return $ catMaybes [a]
     _ -> return []
 
 getAudience :: AS -> IO [Text]
@@ -188,7 +191,9 @@ handleActivity msg = do
   let settings = appSettings app
   let tpkey = appPrivateKey settings
   $logDebug $ "pkey: " ++ tpkey
+  print $ "print pkey: " ++ tpkey
   let pkey = keyFromText tpkey
+  $logDebug $ tshow pkey
   mObj <- createObject msg
   case mObj of
     (Just obj) -> do

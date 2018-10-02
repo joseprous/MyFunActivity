@@ -1,4 +1,21 @@
+* actor
+** DONE inbox                                                          :must:
+** DONE outbox                                                         :must:
+** TODO following                                                    :should:
+** TODO followers                                                    :should:
+** liked                                                                :may:
+** streams                                                              :may:
+** DONE preferredUsername                                               :may:
+** endpoints                                                            :may:
+*** proxyUrl
+*** oauthAuthorizationEndpoint
+*** oauthTokenEndpoint
+*** provideClientKey
+*** signClientKey
+*** sharedInbox
 * client-server
+** security
+*** TODO oauth 2.0 bearer tokens
 ** get inbox
 *** TODO return messages
 
@@ -32,6 +49,8 @@ Location: https://dustycloud.org/likes/345
 
 
 * server-server
+** security
+*** TODO http signatures
 ** delivery
 *** DONE find inboxes
 *** DONE post to inboxes

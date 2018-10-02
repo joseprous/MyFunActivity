@@ -14,28 +14,30 @@ getActorJson :: AppSettings -> (Route App -> Text) -> Value
 getActorJson settings render =
   let actorUrl = render ActorR
       inboxUrl = render InboxR
+      outboxUrl = render OutboxR
       user = appMyUser settings
       key = appPublicKey settings
       avatar = appAvatar settings
-  in getActorJson' actorUrl inboxUrl user key avatar
-
-getActorJson' :: Text -> Text -> Text -> Text -> Text -> Value
-getActorJson' actorUrl inboxUrl user key avatar =
-  object
-  [ "@context" .= ([ "https://www.w3.org/ns/activitystreams"
-                   , "https://w3id.org/security/v1"
-                   ] :: [Text])
-  , "id" .= actorUrl
-  , "type" .= ("Person" :: Text)
-  , "preferredUsername" .= user
-  , "inbox" .= inboxUrl
-  , "publicKey" .= object
-    [ "id" .= (actorUrl ++ "#main-key")
-    , "owner" .= actorUrl
-    , "publicKeyPem" .= key
-    ]
-  , "icon" .= avatar
-  ]
+  in object
+     [ "@context" .= ([ "https://www.w3.org/ns/activitystreams"
+                      , "https://w3id.org/security/v1"
+                      ] :: [Text])
+     , "id" .= actorUrl
+     , "type" .= ("Person" :: Text)
+     , "preferredUsername" .= user
+     , "inbox" .= inboxUrl
+     , "outbox" .= outboxUrl
+     , "publicKey" .= object
+       [ "id" .= (actorUrl ++ "#main-key")
+       , "owner" .= actorUrl
+       , "publicKeyPem" .= key
+       ]
+     , "icon" .= object
+       [ "type" .= ("Image" :: Text)
+       , "mediaType" .= ("image/jpeg" :: Text)
+       , "url" .= avatar
+       ]
+     ]
 
 getActorR :: Handler TypedContent
 getActorR = do
