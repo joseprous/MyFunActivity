@@ -65,7 +65,11 @@ Location: https://dustycloud.org/likes/345
 **** TODO Update Activity
 **** TODO Delete Activity
 **** TODO Follow Activity
+***** TODO generate Accept activity                                  :should:
+***** DONE add to followers collection                               :should:
+***** TODO generate Reject activity                                  :should:
 **** TODO Accept Activity
+***** TODO if pending Follow add to following collection             :should:
 **** TODO Reject Activity
 **** TODO Add Activity
 **** TODO Remove Activity

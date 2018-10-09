@@ -13,3 +13,6 @@ Notes
 Logs
     message Text
     deriving Show
+Followers
+    actor Text
+    deriving Show
