@@ -18,11 +18,9 @@ import Control.Lens hiding ((.=))
 import Data.Aeson.Lens as L
 import Database.Persist.Sql (fromSqlKey)
 
-import Network.Connection (TLSSettings (..))
 import qualified Network.HTTP.Client as HC
 import qualified Network.HTTP.Client.TLS as TLS
 import qualified Data.ByteString.Lazy as L
-import qualified Data.Maybe as M
 
 import Handler.Crypto
 import qualified Crypto.PubKey.RSA as RSA
@@ -32,10 +30,22 @@ import Data.Text.Encoding as E
 import Data.ActivityStreams
 
 getOutboxR :: Handler TypedContent
-getOutboxR = selectRep $ do
-  provideRep $ return [shamlet|
+getOutboxR = do
+  render <- getUrlRender
+  let outboxUrl = render OutboxR
+  let totalItems = 0 :: Int
+  let jsonld = object
+        [ "@context" .= ("https://www.w3.org/ns/activitystreams" :: Text)
+        , "type" .= ("OrderedCollection" :: Text)
+        , "id" .= outboxUrl
+        , "totalItems" .= totalItems
+        , "orderedItems" .= object []
+        ]
+  selectRep $ do
+    provideRep $ return [shamlet|
 <p>Get Outbox
 |]
+    repActivityJson jsonld
 
 toOutbox :: AS -> Outbox
 toOutbox msg = Outbox {outboxMessage = msg}
