@@ -29,9 +29,14 @@ import Data.Text.Encoding as E
 
 import Data.ActivityStreams
 
+getActivityMessage :: Entity Activities -> AS
+getActivityMessage (Entity _ activity) = activitiesMessage activity
+
 getOutboxR :: Handler TypedContent
 getOutboxR = do
   render <- getUrlRender
+  activities <- runDB $ selectList [] [Desc ActivitiesId]
+  let messages = map getActivityMessage activities
   let outboxUrl = render OutboxR
   let totalItems = 0 :: Int
   let jsonld = object
@@ -39,7 +44,7 @@ getOutboxR = do
         , "type" .= ("OrderedCollection" :: Text)
         , "id" .= outboxUrl
         , "totalItems" .= totalItems
-        , "orderedItems" .= object []
+        , "orderedItems" .= messages
         ]
   selectRep $ do
     provideRep $ return [shamlet|
@@ -116,6 +121,7 @@ createActivity act obj = do
   let newId = render idRoute
   let newAct = processActivity act obj newId
   runDB $ Import.replace activityId $ toActivities newAct
+  _ <- runDB $ insert $ toOutbox newAct
   return (newAct,idRoute)
 
 getActorJSON :: Text -> IO L.ByteString
