@@ -15,7 +15,7 @@ import qualified Data.Text.Lazy.Encoding as LE
 import qualified Data.Set as S
 
 import Control.Lens hiding ((.=))
-import Data.Aeson.Lens as L
+import Data.Aeson.Lens
 import Database.Persist.Sql (fromSqlKey)
 
 import qualified Network.HTTP.Client as HC
