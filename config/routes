@@ -10,6 +10,8 @@
 
 /inbox InboxR GET POST
 /outbox OutboxR GET POST
+/following FollowingR GET
+/followers FollowersR GET
 /activities/#Int64 ActivitiesR
 /notes/#Int64 NotesR
 

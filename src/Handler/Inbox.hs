@@ -15,10 +15,24 @@ import Data.Aeson.Lens
 import Handler.Crypto
 
 getInboxR :: Handler TypedContent
-getInboxR = selectRep $ do
+getInboxR = do
+  render <- getUrlRender
+  inbox <- runDB $ selectList [] [Desc InboxId]
+  let messages = map (\((Entity _ i))-> inboxMessage i) inbox
+  let inboxUrl = render InboxR
+  let totalItems = length messages
+  let jsonld = object
+        [ "@context" .= ("https://www.w3.org/ns/activitystreams" :: Text)
+        , "type" .= ("OrderedCollection" :: Text)
+        , "id" .= inboxUrl
+        , "totalItems" .= totalItems
+        , "orderedItems" .= messages
+        ]
+  selectRep $ do
     provideRep $ return [shamlet|
 <p>Get Inbox
 |]
+    repActivityJson jsonld
 
 toInbox :: AS -> Inbox
 toInbox msg = Inbox {inboxMessage = msg}
@@ -74,8 +88,20 @@ postInboxR = do
               sendError
           return ()
         "Accept" -> do
-          $logDebug $ "postInboxR error Accept not implemented: "
-          sendError
+          let (mactor,mobj) = (msg ^? key "actor",msg ^? key "object")
+          case (mactor,mobj) of
+            (Just (String actor),(Just (String _))) -> do
+              maybeActor <- runDB $ getBy $ UniqueFollowingActor actor
+              case maybeActor of
+                (Just (Entity k a)) | (followingActor a) == actor -> do
+                                        _ <- runDB $ update k [FollowingAccepted =. True]
+                                        return ()
+                                    | otherwise -> return ()
+                _ -> return ()
+              return ()
+            _ -> do
+              $logDebug $ "can't obtain actor and object in Accept"
+              sendError
         "Reject" -> do
           $logDebug $ "postInboxR error Reject not implemented: "
           sendError

@@ -15,4 +15,10 @@ Logs
     deriving Show
 Followers
     actor Text
+    UniqueFollowerActor actor
+    deriving Show
+Following
+    actor Text
+    accepted Bool
+    UniqueFollowingActor actor
     deriving Show

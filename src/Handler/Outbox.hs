@@ -28,7 +28,7 @@ getOutboxR = do
   activities <- runDB $ selectList [] [Desc ActivitiesId]
   let messages = map getActivityMessage activities
   let outboxUrl = render OutboxR
-  let totalItems = 0 :: Int
+  let totalItems = length messages
   let jsonld = object
         [ "@context" .= ("https://www.w3.org/ns/activitystreams" :: Text)
         , "type" .= ("OrderedCollection" :: Text)
@@ -81,14 +81,26 @@ createNote as@(AS v) = do
   runDB $ Import.replace noteId $ toNotes $ AS newMsg
   return (Just $ AS newMsg)
 
-createObject :: AS -> Handler (Maybe AS)
-createObject (AS msg) = do
+processFollow :: AS -> Handler (Maybe AS)
+processFollow (AS v) = do
+  let mactor = v ^? key "actor"
+  let mobj = v ^? key "object"
+  case (mactor,mobj) of
+    (Just (String actorurl), Just (String objurl)) -> do
+      $logDebug $ "actorurl: " ++ actorurl ++ " objurl: " ++ objurl
+      _ <- runDB $ insert $ Following {followingActor = actorurl, followingAccepted = False}
+      return $ Just (AS $ v)
+    _ -> return Nothing
+
+processObject :: AS -> Handler (Maybe AS)
+processObject (AS msg) = do
   let mObj = msg ^? key "object"
   case mObj of
     (Just obj) -> do
       let objType = obj ^? key "type"
       case objType of
         (Just (String s)) | s == "Note" -> createNote $ AS obj
+                          | s == "Follow" -> processFollow $ AS obj
                           | otherwise -> return Nothing
         _ -> return Nothing
     _ -> return Nothing
@@ -149,7 +161,7 @@ handleActivity msg = do
   print $ "print pkey: " ++ tpkey
   let pkey = keyFromText tpkey
   $logDebug $ tshow pkey
-  mObj <- createObject msg
+  mObj <- processObject msg
   case mObj of
     (Just obj) -> do
       (act,route) <- createActivity msg obj
